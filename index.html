@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>李茁晖国画作品集</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="bg-white">
+    <!-- 背景音乐播放器 -->
+    <audio id="bg-music" loop preload="auto">
+        <source src="背景音乐.mp3" type="audio/mpeg">
+        您的浏览器不支持音频播放。
+    </audio>
+    
+    <!-- 音乐控制按钮 -->
+    <button id="music-toggle" class="fixed top-24 right-4 z-50 bg-white/90 hover:bg-white text-gray-700 hover:text-red-700 rounded-full p-3 shadow-lg transition-all duration-300 hover:scale-110">
+        <svg id="music-icon-on" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1 1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
+        </svg>
+        <svg id="music-icon-off" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.586 15H4a1 1 0 01-1 1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2" />
+        </svg>
+    </button>
+
+    <!-- 音乐提示信息 -->
+    <div id="music-hint" class="fixed top-24 right-16 z-50 bg-red-600 text-white px-4 py-2 rounded-lg shadow-lg text-sm animate-pulse">
+        点击页面播放音乐 🎵
+    </div>
+
+    <script>
+        // 背景音乐控制
+        const bgMusic = document.getElementById('bg-music');
+        const musicToggle = document.getElementById('music-toggle');
+        const musicIconOn = document.getElementById('music-icon-on');
+        const musicIconOff = document.getElementById('music-icon-off');
+        const musicHint = document.getElementById('music-hint');
+        let isPlaying = false;
+        let userInteracted = false;
+
+        // 设置音量为2%
+        bgMusic.volume = 0.02;
+
+        // 从sessionStorage恢复音乐状态
+        function restoreMusicState() {
+            const savedState = sessionStorage.getItem('musicPlaying');
+            if (savedState === 'true') {
+                isPlaying = true;
+                updateMusicIcon();
+                hideHint();
+                console.log('恢复音乐播放状态');
+            }
+        }
+
+        // 保存音乐状态到sessionStorage
+        function saveMusicState() {
+            sessionStorage.setItem('musicPlaying', isPlaying);
+        }
+
+        // 尝试自动播放
+        function attemptAutoPlay() {
+            bgMusic.play().then(() => {
+                isPlaying = true;
+                updateMusicIcon();
+                hideHint();
+                saveMusicState();
+                console.log('背景音乐自动播放成功');
+            }).catch(error => {
+                console.log('自动播放被阻止:', error);
+                isPlaying = false;
+                updateMusicIcon();
+                showHint();
+            });
+        }
+
+        // 更新音乐图标
+        function updateMusicIcon() {
+            if (isPlaying) {
+                musicIconOn.classList.remove('hidden');
+                musicIconOff.classList.add('hidden');
+            } else {
+                musicIconOn.classList.add('hidden');
+                musicIconOff.classList.remove('hidden');
+            }
+        }
+
+        // 显示提示
+        function showHint() {
+            if (!isPlaying && !userInteracted) {
+                musicHint.classList.remove('hidden');
+            }
+        }
+
+        // 隐藏提示
+        function hideHint() {
+            musicHint.classList.add('hidden');
+        }
+
+        // 切换音乐播放状态（仅在点击音乐按钮时触发）
+        function toggleMusic(event) {
+            event.stopPropagation();
+            event.preventDefault();
+            event.stopImmediatePropagation();
+            
+            if (isPlaying) {
+                bgMusic.pause();
+                isPlaying = false;
+                console.log('背景音乐已暂停');
+            } else {
+                bgMusic.play();
+                isPlaying = true;
+                hideHint();
+                console.log('背景音乐已开始播放');
+            }
+            updateMusicIcon();
+            saveMusicState();
+        }
+
+        musicToggle.addEventListener('click', toggleMusic, true);
+        musicToggle.addEventListener('touchstart', toggleMusic, true);
+
+        // 页面加载完成后立即尝试自动播放
+        window.addEventListener('DOMContentLoaded', () => {
+            restoreMusicState();
+            if (isPlaying) {
+                bgMusic.play().catch(error => {
+                    console.log('恢复播放失败:', error);
+                    isPlaying = false;
+                    updateMusicIcon();
+                });
+            } else {
+                attemptAutoPlay();
+            }
+        });
+
+        // 再次尝试自动播放（备用方案）
+        window.addEventListener('load', () => {
+            if (!isPlaying) {
+                attemptAutoPlay();
+            }
+        });
+
+        // 页面卸载前保存状态
+        window.addEventListener('beforeunload', saveMusicState);
+    </script>
+
+    <!-- 导航栏 -->
+    <nav class="bg-gradient-to-r from-gray-50 to-gray-100 shadow-md sticky top-0 z-50">
+        <div class="container mx-auto px-4 py-4">
+            <div class="flex justify-between items-center">
+                <div class="text-2xl font-bold text-gray-800">李茁晖国画作品集</div>
+                <div class="hidden md:flex space-x-8">
+                    <a href="index.html" class="nav-link text-gray-700 hover:text-red-700 transition-colors duration-300 font-medium">首页</a>
+                    <a href="花卉.html" class="nav-link text-gray-700 hover:text-red-700 transition-colors duration-300 font-medium">花卉</a>
+                    <a href="人物.html" class="nav-link text-gray-700 hover:text-red-700 transition-colors duration-300 font-medium">人物</a>
+                    <a href="山水.html" class="nav-link text-gray-700 hover:text-red-700 transition-colors duration-300 font-medium">山水</a>
+                    <a href="动物.html" class="nav-link text-gray-700 hover:text-red-700 transition-colors duration-300 font-medium">动物</a>
+                </div>
+                <!-- 移动端菜单按钮 -->
+                <div class="md:hidden">
+                    <button id="mobile-menu-button" class="text-gray-700 hover:text-red-700 focus:outline-none">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+            <!-- 移动端菜单 -->
+            <div id="mobile-menu" class="hidden md:hidden mt-4 pb-4">
+                <a href="index.html" class="block py-2 text-gray-700 hover:text-red-700 transition-colors duration-300">首页</a>
+                <a href="花卉.html" class="block py-2 text-gray-700 hover:text-red-700 transition-colors duration-300">花卉</a>
+                <a href="人物.html" class="block py-2 text-gray-700 hover:text-red-700 transition-colors duration-300">人物</a>
+                <a href="山水.html" class="block py-2 text-gray-700 hover:text-red-700 transition-colors duration-300">山水</a>
+                <a href="动物.html" class="block py-2 text-gray-700 hover:text-red-700 transition-colors duration-300">动物</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero区 -->
+    <section class="relative overflow-hidden">
+        <div class="absolute inset-0">
+            <img src="images/背景图1.jpg" alt="背景" class="w-full h-full object-cover opacity-40 breathing-bg">
+        </div>
+        <div class="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-white"></div>
+        <div class="container mx-auto px-4 py-16 relative z-10">
+            <div class="flex flex-col md:flex-row items-center gap-12">
+                <!-- 左侧头像 -->
+                <div class="w-48 h-48 md:w-64 md:h-64 rounded-full overflow-hidden shadow-xl border-4 border-white">
+                    <img src="images/作者卡通头像.jpg" alt="作者头像" class="w-full h-full object-cover">
+                </div>
+                
+                <!-- 右侧自我介绍 -->
+                <div class="flex-1">
+                    <h1 class="text-5xl md:text-6xl font-bold text-gray-800 mb-6">李茁晖</h1>
+                    <div class="text-xl md:text-2xl text-gray-700 mb-6 space-y-4">
+                        <p>北京外国语大学英语学院硕士，自幼热爱绘画。</p>
+                        <p>在创作的道路上，有幸获得多项荣誉与认可：</p>
+                        <ul class="list-disc pl-6 space-y-2">
+                            <li>中国文学艺术界联合会第十六届推选文艺新人活动全国十佳</li>
+                            <li>全国第十六届推新人大赛江苏赛区绘画少儿组十佳奖</li>
+                            <li>全国第十六届推新人大赛淮安赛区绘画十佳</li>
+                            <li>淮安市第二届钵池山杯书画大赛特等奖</li>
+                            <li>淮安广播电视台2012龙年之春杯金奖</li>
+                            <li>首届全国当代少儿书画网络大赛金奖</li>
+                            <li>CCTV大自然地板创意小画家江苏画区100强、全国银奖</li>
+                            <li>江苏省青少年书画协会会员</li>
+                            <li>国画十级证书获得者</li>
+                        </ul>
+                        <p>这些荣誉不仅是对艺术创作的肯定，更是激励不断探索国画精髓的动力。</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 作品分类介绍（文字形式，留有神秘感） -->
+    <section class="container mx-auto px-4 py-16">
+        <h2 class="text-4xl md:text-5xl font-bold text-center text-gray-800 mb-12">作品分类</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+            <!-- 花卉作品 -->
+            <div class="bg-gradient-to-br from-pink-50 to-pink-100 p-8 rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 text-center">
+                <h3 class="text-3xl font-bold text-gray-800 mb-4">花卉</h3>
+                <p class="text-lg text-gray-700 mb-4">国色天香，争奇斗艳。</p>
+                <a href="花卉.html" class="inline-block bg-pink-200 hover:bg-pink-300 text-gray-800 px-6 py-2 rounded-full transition-colors duration-300 text-lg">探索花卉世界</a>
+            </div>
+
+            <!-- 人物作品 -->
+            <div class="bg-gradient-to-br from-blue-50 to-blue-100 p-8 rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 text-center">
+                <h3 class="text-3xl font-bold text-gray-800 mb-4">人物</h3>
+                <p class="text-lg text-gray-700 mb-4">笔精墨妙，神形兼备。</p>
+                <a href="人物.html" class="inline-block bg-blue-200 hover:bg-blue-300 text-gray-800 px-6 py-2 rounded-full transition-colors duration-300 text-lg">探索人物世界</a>
+            </div>
+
+            <!-- 山水作品 -->
+            <div class="bg-gradient-to-br from-green-50 to-green-100 p-8 rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 text-center">
+                <h3 class="text-3xl font-bold text-gray-800 mb-4">山水</h3>
+                <p class="text-lg text-gray-700 mb-4">山水寄情，意境悠远。</p>
+                <a href="山水.html" class="inline-block bg-green-200 hover:bg-green-300 text-gray-800 px-6 py-2 rounded-full transition-colors duration-300 text-lg">探索山水世界</a>
+            </div>
+
+            <!-- 动物作品 -->
+            <div class="bg-gradient-to-br from-yellow-50 to-yellow-100 p-8 rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 text-center">
+                <h3 class="text-3xl font-bold text-gray-800 mb-4">动物</h3>
+                <p class="text-lg text-gray-700 mb-4">矫捷灵动，惟妙惟肖。</p>
+                <a href="动物.html" class="inline-block bg-yellow-200 hover:bg-yellow-300 text-gray-800 px-6 py-2 rounded-full transition-colors duration-300 text-lg">探索动物世界</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- 荣誉证书展示（全部9个证书） -->
+    <section class="bg-gray-50 py-16">
+        <div class="container mx-auto px-4">
+            <h2 class="text-4xl md:text-5xl font-bold text-center text-gray-800 mb-12">荣誉证书</h2>
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
+                <div class="certificate-item bg-white rounded-lg shadow-md overflow-hidden p-4">
+                    <div class="h-64 flex items-center justify-center bg-gray-100 rounded">
+                        <img src="images/中国文学艺术界联合会第十六届推选文艺新人活动全国十佳.jpg" alt="全国十佳证书" class="max-w-full max-h-full">
+                    </div>
+                    <div class="p-3 text-center">
+                        <p class="text-lg font-medium text-gray-700">全国十佳证书</p>
+                    </div>
+                </div>
+
+                <div class="certificate-item bg-white rounded-lg shadow-md overflow-hidden p-4">
+                    <div class="h-64 flex items-center justify-center bg-gray-100 rounded">
+                        <img src="images/全国第十六届推新人大赛淮安赛区绘画十佳.jpg" alt="绘画十佳证书" class="max-w-full max-h-full">
+                    </div>
+                    <div class="p-3 text-center">
+                        <p class="text-lg font-medium text-gray-700">绘画十佳证书</p>
+                    </div>
+                </div>
+
+                <div class="certificate-item bg-white rounded-lg shadow-md overflow-hidden p-4">
+                    <div class="h-64 flex items-center justify-center bg-gray-100 rounded">
+                        <img src="images/淮安市第二届钵池山杯书画大赛特等奖.jpg" alt="特等奖证书" class="max-w-full max-h-full">
+                    </div>
+                    <div class="p-3 text-center">
+                        <p class="text-lg font-medium text-gray-700">特等奖证书</p>
+                    </div>
+                </div>
+
+                <div class="certificate-item bg-white rounded-lg shadow-md overflow-hidden p-4">
+                    <div class="h-64 flex items-center justify-center bg-gray-100 rounded">
+                        <img src="images/淮安广播电视台2012龙年之春杯金奖.jpg" alt="金奖证书" class="max-w-full max-h-full">
+                    </div>
+                    <div class="p-3 text-center">
+                        <p class="text-lg font-medium text-gray-700">金奖证书</p>
+                    </div>
+                </div>
+
+                <div class="certificate-item bg-white rounded-lg shadow-md overflow-hidden p-4">
+                    <div class="h-64 flex items-center justify-center bg-gray-100 rounded">
+                        <img src="images/首届全国当代少儿书画网络大赛金奖.jpg" alt="网络大赛金奖" class="max-w-full max-h-full">
+                    </div>
+                    <div class="p-3 text-center">
+                        <p class="text-lg font-medium text-gray-700">网络大赛金奖</p>
+                    </div>
+                </div>
+
+                <div class="certificate-item bg-white rounded-lg shadow-md overflow-hidden p-4">
+                    <div class="h-64 flex items-center justify-center bg-gray-100 rounded">
+                        <img src="images/CCTV大自然地板创意小画家江苏画区100强.jpg" alt="100强证书" class="max-w-full max-h-full">
+                    </div>
+                    <div class="p-3 text-center">
+                        <p class="text-lg font-medium text-gray-700">100强证书</p>
+                    </div>
+                </div>
+
+                <div class="certificate-item bg-white rounded-lg shadow-md overflow-hidden p-4">
+                    <div class="h-64 flex items-center justify-center bg-gray-100 rounded">
+                        <img src="images/江苏省青少年书画协会会员证.jpg" alt="会员证" class="max-w-full max-h-full">
+                    </div>
+                    <div class="p-3 text-center">
+                        <p class="text-lg font-medium text-gray-700">会员证</p>
+                    </div>
+                </div>
+
+                <div class="certificate-item bg-white rounded-lg shadow-md overflow-hidden p-4">
+                    <div class="h-64 flex items-center justify-center bg-gray-100 rounded">
+                        <img src="images/国画十级证书.jpg" alt="国画十级证书" class="max-w-full max-h-full">
+                    </div>
+                    <div class="p-3 text-center">
+                        <p class="text-lg font-medium text-gray-700">国画十级证书</p>
+                    </div>
+                </div>
+
+                <div class="certificate-item bg-white rounded-lg shadow-md overflow-hidden p-4">
+                    <div class="h-64 flex items-center justify-center bg-gray-100 rounded">
+                        <img src="images/第十六届全国推新人大赛江苏赛区绘画少儿组十佳奖.jpg" alt="少儿组十佳奖" class="max-w-full max-h-full">
+                    </div>
+                    <div class="p-3 text-center">
+                        <p class="text-lg font-medium text-gray-700">少儿组十佳奖</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 页脚 -->
+    <footer class="bg-gray-100 mt-16 py-8">
+        <div class="container mx-auto px-4 text-center text-gray-600">
+            <p class="text-lg">&copy; 李茁晖国画作品集. 保留所有权利.</p>
+        </div>
+    </footer>
+
+    <script>
+        // 移动端菜单切换
+        document.getElementById('mobile-menu-button').addEventListener('click', function() {
+            document.getElementById('mobile-menu').classList.toggle('hidden');
+        });
+    </script>
+</body>
+</html>
